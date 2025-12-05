@@ -1,6 +1,9 @@
 #include <iostream>
 #include <queue>
 #include <vector>
+#include <stack>
+#include <algorithm>
+
 using namespace std;
 
 struct process {
@@ -17,14 +20,32 @@ struct procQueue {
     queue<int> VecFirst, VecSec, CubFirst, CubSec;
 };
 
+struct timeAndInd {
+    int time = 0;
+    int ind = -1;
+};
 
-int SortKahn(int numNodes, vector<vector<int>>& graph, vector<int>& result);
+struct structDataProc {
+    vector<timeAndInd> vecProcVec;
+    vector<timeAndInd> vekProcCub;
+    stack<int> stProcVec;
+    stack<int> stProcCub;
+};
 
-int Input(int size_proces, int sizeProcV, int sizeProcC, int *sizeNodes, vector<process> &arr, vector<vector<int>> &graph);
 
-int Start(procQueue &data, vector<vector<int>> &graph, vector<process> &arr, vector<int> &topsort, int size_proces); 
+int SortKahn(int numNodes, vector<vector<int>>& graph, vector<int>& result); // сортировка процессоров (вершин) для 
+//выявления всех процессов которые можно запустить в нулевой точке, то есть которые будут запускатся первыми
 
-int AddElQueue(procQueue &data, vector<process> &arr, int ind);
+int Input(int size_proces, int sizeProcV, int sizeProcC, int *sizeNodes, vector<process> &arr, vector<vector<int>> &graph); // ввод значений
+
+int Start(procQueue &data, vector<vector<int>> &graph, vector<process> &arr, vector<int> &topsort, int size_proces); // заполнение 
+//очереди в нулевой точке. является логикой выбора точек, само добавление процессов вынесенно в отдельную функцию
+
+int AddElQueue(procQueue &data, vector<process> &arr, int ind); // добавление процесса в очередь
+
+int idleProc(structDataProc &dataProc, int size_proces, int delta); // функция нахождения свободных процессоров и добавления их в стек свободных процессоров
+
+int startProc(); // функция добавления процессов на свободные процессоры
 
 int main()
 {
@@ -32,10 +53,14 @@ int main()
     vector <vector<int>> graph;
     vector<int> topsort;
     procQueue dataProcQueue;
+    structDataProc dataProc;
 
 
     int size_proces, sizeProcV, sizeProcC, sizeEdge;
     cin >> size_proces >> sizeProcV >> sizeProcC;  //количество процессов, кол-во ядер v и c
+
+    dataProc.vecProcVec.resize(size_proces);
+    dataProc.vekProcCub.resize(size_proces);
 
     Input(size_proces, sizeProcV, sizeProcC, &sizeEdge, arr, graph);
     
@@ -131,4 +156,19 @@ int Start(procQueue &data, vector<vector<int>> &graph, vector<process> &arr, vec
     return 0;
 }
 
-// test 3
+int idleProc(structDataProc &dataProc, int size_proces, int delta) {
+    for (int i = 0; i < size_proces; i++) {
+        dataProc.vecProcVec[i].time = min(0, dataProc.vecProcVec[i].time - delta);
+        dataProc.vekProcCub[i].time = min(0, dataProc.vekProcCub[i].time - delta);
+        if (dataProc.vecProcVec[i].time == -1) {
+            dataProc.stProcVec.push(i);
+        }
+        if (dataProc.vekProcCub[i].time == -1) {
+            dataProc.stProcCub.push(i);
+        }
+    }
+}
+
+int startProc() {
+
+}
