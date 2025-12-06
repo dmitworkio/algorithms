@@ -27,7 +27,7 @@ struct timeAndInd {
 
 struct structDataProc {
     vector<timeAndInd> vecProcVec;
-    vector<timeAndInd> vekProcCub;
+    vector<timeAndInd> vecProcCub;
     stack<int> stProcVec;
     stack<int> stProcCub;
 };
@@ -43,9 +43,9 @@ int Start(procQueue &data, vector<vector<int>> &graph, vector<process> &arr, vec
 
 int AddElQueue(procQueue &data, vector<process> &arr, int ind); // добавление процесса в очередь
 
-int idleProc(structDataProc &dataProc, int size_proces, int delta); // функция нахождения свободных процессоров и добавления их в стек свободных процессоров
+int idleProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr, int size_proces, int sizeProcV, int sizeProcC, int delta); // функция нахождения свободных процессоров и добавления их в стек свободных процессоров
 
-int startProc(); // функция добавления процессов на свободные процессоры 
+int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr); // функция добавления процессов на свободные процессоры 
 
 int main()
 {
@@ -59,14 +59,18 @@ int main()
     int size_proces, sizeProcV, sizeProcC, sizeEdge;
     cin >> size_proces >> sizeProcV >> sizeProcC;  //количество процессов, кол-во ядер v и c
 
-    dataProc.vecProcVec.resize(size_proces);
-    dataProc.vekProcCub.resize(size_proces);
+    dataProc.vecProcVec.resize(sizeProcV);
+    dataProc.vecProcCub.resize(sizeProcC);
 
     Input(size_proces, sizeProcV, sizeProcC, &sizeEdge, arr, graph);
     
     SortKahn(size_proces, graph, topsort);
 
     Start(dataProcQueue, graph, arr, topsort, size_proces);
+
+    idleProc(dataProc, dataProcQueue, arr, size_proces, sizeProcV, sizeProcC, 0);
+
+    startProc(dataProc, dataProcQueue, arr);
 
 }
 
@@ -156,19 +160,76 @@ int Start(procQueue &data, vector<vector<int>> &graph, vector<process> &arr, vec
     return 0;
 }
 
-int idleProc(structDataProc &dataProc, int size_proces, int delta) {
-    for (int i = 0; i < size_proces; i++) {
+int idleProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr, int size_proces, int sizeProcV, int sizeProcC, int delta) {
+    for (int i = 0; i < sizeProcV; i++) {
         dataProc.vecProcVec[i].time = min(0, dataProc.vecProcVec[i].time - delta);
-        dataProc.vekProcCub[i].time = min(0, dataProc.vekProcCub[i].time - delta);
-        if (dataProc.vecProcVec[i].time == -1) {
+        if (dataProc.vecProcVec[i].time == 0) {
             dataProc.stProcVec.push(i);
-        }
-        if (dataProc.vekProcCub[i].time == -1) {
-            dataProc.stProcCub.push(i);
+            if (dataProc.vecProcVec[i].ind != -1) {
+                AddElQueue(dataProcQueue, arr, i);
+            }
         }
     }
+
+    for (int i = 0; i < sizeProcC; i++) {
+        dataProc.vecProcCub[i].time = min(0, dataProc.vecProcCub[i].time - delta);
+        if (dataProc.vecProcCub[i].time == 0) {
+            dataProc.stProcCub.push(i);
+            if (dataProc.vecProcCub[i].ind != -1) {
+                AddElQueue(dataProcQueue, arr, i);
+            }
+        }
+    }
+    
+    return 0;
 }
 
-int startProc() {
 
+int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr) {
+    int flag1 = 1;
+    int flag2 = 1;
+    int indProcess, indProcessor;
+    while (flag1 && flag2)
+    {
+        flag1 = 0;
+        flag2 = 0;
+        if (!dataProc.stProcCub.empty()) {
+            flag1 = 1;
+            indProcessor = dataProc.stProcCub.top();
+            dataProc.stProcCub.pop();
+            if (!dataProcQueue.CubFirst.empty()) {
+                flag2 = 1;
+                indProcess = dataProcQueue.CubFirst.front();
+                dataProcQueue.CubFirst.pop();
+                dataProc.vecProcCub[indProcessor].ind = indProcess;
+                dataProc.vecProcCub[indProcessor].time = arr[indProcess].time;
+            } else if (!dataProcQueue.CubSec.empty()) {
+                flag2 = 1;
+                indProcess = dataProcQueue.CubSec.front();
+                dataProcQueue.CubSec.pop();
+                dataProc.vecProcCub[indProcessor].ind = indProcess;
+                dataProc.vecProcCub[indProcessor].time = arr[indProcess].time;
+            }
+        }
+        if (!dataProc.stProcVec.empty()) {
+            flag1 = 1;
+            indProcessor = dataProc.stProcVec.top();
+            dataProc.stProcVec.pop();
+            if (!dataProcQueue.VecFirst.empty()) {
+                flag2 = 1;
+                indProcess = dataProcQueue.VecFirst.front();
+                dataProcQueue.VecFirst.pop();
+                dataProc.vecProcVec[indProcessor].ind = indProcess;
+                dataProc.vecProcVec[indProcessor].time = arr[indProcess].time;
+            } else if (!dataProcQueue.VecSec.empty()) {
+                flag2 = 1;
+                indProcess = dataProcQueue.VecSec.front();
+                dataProcQueue.VecSec.pop();
+                dataProc.vecProcVec[indProcessor].ind = indProcess;
+                dataProc.vecProcVec[indProcessor].ind = arr[indProcess].time;
+            }
+        }
+    }
+    
+    return 0;
 }
