@@ -21,11 +21,16 @@ struct process {
 struct indAndDaughter {
     int ind;
     int cntDaughter;
+    int time;
 };
 
 struct CompareTimeAndInd {
     bool operator()(const indAndDaughter& a, const indAndDaughter& b) {
-        return a.cntDaughter < b.cntDaughter; 
+        if (a.cntDaughter != b.cntDaughter) {
+            return a.cntDaughter < b.cntDaughter;
+        }
+        
+        return a.time > b.time;
     }
 };
 
@@ -181,6 +186,7 @@ int AddElQueue(structProcPriorQueue &procPriorQueue, vector<process> &arr, int i
     indAndDaughter el;
     el.ind = ind;
     el.cntDaughter = arr[ind].cntDaugher;
+    el.time = arr[ind].time;
 
     if (arr[ind].type == 'V') {
         procPriorQueue.VecQueue.push(el);
