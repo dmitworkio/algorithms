@@ -26,6 +26,11 @@ struct timeAndInd {
     int ind = -1;
 };
 
+struct structResultData {
+    vector<vector<int>> resVec;
+    vector<vector<int>> resCub;
+};
+
 struct structDataProc {
     vector<timeAndInd> vecProcVec;
     vector<timeAndInd> vecProcCub;
@@ -46,11 +51,13 @@ int AddElQueue(procQueue &data, vector<process> &arr, int ind); // добавл�
 
 int idleProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr, int size_proces, int sizeProcV, int sizeProcC, int delta, int &cntProcessComplite); // функция нахождения свободных процессоров и добавления их в стек свободных процессоров
 
-int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr); // функция добавления процессов на свободные процессоры 
+int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr, structResultData &resultData); // функция добавления процессов на свободные процессоры 
 
 int minTime(structDataProc &dataProc, int &numMinTime, int sizeProcC, int sizeProcV);
 
 int clearStack(structDataProc &dataProc);
+
+int output(structResultData &resultData);
 
 int main()
 {
@@ -59,6 +66,8 @@ int main()
     vector<int> topsort;
     procQueue dataProcQueue;
     structDataProc dataProc;
+    vector<int> result;
+    structResultData resultData;
 
 
     int size_proces, sizeProcV, sizeProcC, sizeEdge, cntProcessComplite = 0, numMinTime = 0;
@@ -66,6 +75,8 @@ int main()
 
     dataProc.vecProcVec.resize(sizeProcV);
     dataProc.vecProcCub.resize(sizeProcC);
+    resultData.resVec.resize(sizeProcV);
+    resultData.resCub.resize(sizeProcC);
 
     Input(size_proces, sizeProcV, sizeProcC, sizeEdge, arr, graph);
     
@@ -77,14 +88,14 @@ int main()
     {
         idleProc(dataProc, dataProcQueue, arr, size_proces, sizeProcV, sizeProcC, numMinTime, cntProcessComplite);
 
-        startProc(dataProc, dataProcQueue, arr);
+        startProc(dataProc, dataProcQueue, arr, resultData);
 
         minTime(dataProc, numMinTime, sizeProcC, sizeProcV);
 
         
     }
-    
 
+    output(resultData);
 }
 
 int Input(int size_proces, int sizeProcV, int sizeProcC, int &sizeNodes, vector<process> &arr, vector<vector<int>> &graph) {
@@ -215,7 +226,7 @@ int idleProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process>
 }
 
 
-int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr) {
+int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process> &arr, structResultData &resultData) {
     int flag1 = 1;
     int flag2 = 1;
     int indProcess, indProcessor;
@@ -231,6 +242,7 @@ int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process
                 indProcess = dataProcQueue.CubFirst.front();
                 
                 dataProcQueue.CubFirst.pop();
+                resultData.resCub[indProcessor].push_back(indProcess);
                 dataProc.vecProcCub[indProcessor].ind = indProcess;
                 dataProc.vecProcCub[indProcessor].time = arr[indProcess].time;
 
@@ -240,6 +252,7 @@ int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process
                 indProcess = dataProcQueue.CubSec.front();
                 
                 dataProcQueue.CubSec.pop();
+                resultData.resCub[indProcessor].push_back(indProcess);
                 dataProc.vecProcCub[indProcessor].ind = indProcess;
                 dataProc.vecProcCub[indProcessor].time = arr[indProcess].time;
 
@@ -254,6 +267,7 @@ int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process
                 indProcess = dataProcQueue.VecFirst.front();
                 
                 dataProcQueue.VecFirst.pop();
+                resultData.resVec[indProcessor].push_back(indProcess);
                 dataProc.vecProcVec[indProcessor].ind = indProcess;
                 dataProc.vecProcVec[indProcessor].time = arr[indProcess].time;
 
@@ -263,6 +277,7 @@ int startProc(structDataProc &dataProc, procQueue &dataProcQueue, vector<process
                 indProcess = dataProcQueue.VecSec.front();
                 
                 dataProcQueue.VecSec.pop();
+                resultData.resVec[indProcessor].push_back(indProcess);
                 dataProc.vecProcVec[indProcessor].ind = indProcess;
                 dataProc.vecProcVec[indProcessor].time = arr[indProcess].time;
 
@@ -293,5 +308,24 @@ int minTime(structDataProc &dataProc, int &numMinTime, int sizeProcC, int sizePr
 int clearStack(structDataProc &dataProc) {
     dataProc.stProcCub = stack<int>();
     dataProc.stProcVec = stack<int>();
+    return 0;
+}
+
+int output(structResultData &resultData) {
+    for (vector<int> j : resultData.resVec) {
+        cout << j.size() << " ";
+        for (int r : j) {
+            cout << r + 1 << " ";
+        }
+        cout << "\n";
+    }
+    for (vector<int> j : resultData.resCub) {
+        cout << j.size() << " ";
+        for (int r : j) {
+            cout << r + 1 << " ";
+        }
+        cout << "\n";
+    }
+
     return 0;
 }
